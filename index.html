@@ -1,10 +1,363 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>First App</title>
-<link href="style.css" rel="stylesheet">
-</head>
-<body>
+	<head>
+		<meta charset="utf-8">
+		<title>Mini Project</title>
+		<link rel="stylesheet" href="style.css">
+		
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/jStorage/0.4.12/jstorage.min.js"></script>
+		
+      
+	<head>
+	
+	
+	<body>
+	<form>
+		<div class= "ele">
+					<b>Mini Project</b>
+			</div>
+	
+		<div class= "centered">
+			
+			
+			<div class="row">
+				<div class="col-md-4" ><label>Name </label></div>
+				<div class="col-md-4"> <input type = "text" id="name" placeholder="Enter Name" onkeypress="return isNumberKey(event)" autofocus required></div>
+			</div>
+			
+			<div class="row">
+				<div class="col-md-4" ><label>DOB </label></div>
+				<div class="col-md-4"> <input type = "date" id="date" required ></div>
+			</div>
+		
+			<div class="row">
+				<div class="col-md-4" ><label>Gender </label></div>
+				<div class="col-md-4"> <input type = "radio" class="gender" id="male" name="gender" value="Male">Male</input>
+										<input type = "radio" class="gender" id="female" name="gender" value="Female">Female</input></div>
+			</div>
+			
+			
+			<div class="row">
+				<div class="col-md-4" ><label>Designation </label></div>
+				<div class="col-md-4"><select id="designation"><option value="" disabled selected>Select Designation</option>
+																<option value="Trainee">Trainee</option>
+																<option value="Software Developer">Software Developer</option>
+																<option value="HR Manager">HR Manager</option>
+																</select></div>
+			</div>
+			
+			<div class="row">
+				<div class="col-md-4" ><label>Skill Sets </label></div>
+				<div class="col-md-4"> <input type = "checkbox" id="java" name="skill" value="Java">Java</input>
+										<input type = "checkbox" id="dotnet" name="skill" value="Dot Net">Dot Net</input>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-md-2" ></div>
+				<div class="col-md-4"><input type="submit"  id="submit" value="Insert"></input>
+				</div>
+			</div>
+			
+			
+			</div>
+			
+			<div class="row">
+				<div class="col-md-1" ></div>
+				<div class="col-md-8"><table id="showDetails"><tr><th>Id</th><th>Name</th>
+																  <th>Date of Birth</th>
+																  <th>Gender</th>
+																  <th>Designation</th>
+																  <th>Skill sets</th>
+																</tr>
+																<tbody>
+																</tbody>
+																</table>
+				</div>
+				
+			</div>
+	</form>
+	</body>
+	
+	<script>
+	
+	function isNumberKey(evt){
+    var charCode = (evt.which) ? evt.which : event.keyCode
+    if (charCode > 64 && charCode < 91 || charCode > 96 && charCode < 123)
+        return true;
+    return false;
+}
+	
+	var savedRecords = $.jStorage.get("EmployeeDetails") || [];
 
-<h1>Hello....This is my first App</h1>
-<body>
-</html>
+	var editindex,editId,parentId;
+	function initialize(){
+		
+        $("#submit").on("click",addRecord);
+		$("#edit").on("click",editRecord);
+		$("#delete").on("click",deleteRecord);
+				
+		loadRecords();
+		
+    };
+	
+	function loadRecords(){
+	
+		savedRecords = $.jStorage.get("EmployeeDetails") || [];
+		
+		for(let ctr=0 ; ctr < savedRecords.length ; ++ ctr){
+		
+			showRecord(savedRecords[ctr]);
+		}
+		
+		
+		
+	};
+	
+	function addRecord(){
+        //add to ui
+		//var nameValidation=document.getElementById("name").value;
+		//var dateValidation=document.getElementById("date").value;
+		var genderValidate = $('.gender:checked').length;
+		var designationValidate = $("#designation option:selected").val();
+		if(genderValidate==0 || designationValidate === ""){
+			alert("Please fill all fields");
+		
+		}
+		else{
+		var id = 0;
+        var name = $("#name").val();
+		//console.log(name);
+        var date = $("#date").val();
+		//console.log(date);
+      
+		var gender = $("input[name='gender']:checked").val();
+        //console.log(gender);
+		
+		var designation = $("#designation option:selected").val();
+		 //console.log(designation);
+			
+		var skillSets = [];
+		$('input[name="skill"]:checked').each(function() {
+			skillSets.push($(this).val());
+		});
+		
+        //console.log(skillSets);
+		if(savedRecords.length == 0)
+		{
+			 id = 100;
+		}
+		else
+		{
+			  id = savedRecords[savedRecords.length-1].id;
+		}
+			var record = { "id": ++id , "name" : name , "DOB" : date , "Gender" : gender , "Designation" : designation , "skillSets" : skillSets };
+			//console.log(record);
+        
+		showRecord(record);
+
+        //add to recordSet
+        savedRecords.push(record);
+		console.log(savedRecords);
+        //save to database
+        save();
+        
+		
+		$("#name").val("");
+		$("#date").val("");
+		$("#male").prop("checked", false);
+		$("#female").prop("checked", false);
+        $("#designation").val($("#designation option:first").val());
+		$('#java').prop('checked', false);
+		$('#dotnet').prop('checked', false);
+		}
+		return false;
+		
+		
+    };
+
+	function save(){
+        $.jStorage.set("EmployeeDetails", savedRecords );
+		console.log("Success");
+    };
+	
+	function deleteRecord(event,element)
+	{
+		//var savedRecords = $.jStorage.get("EmployeeDetails");
+		
+		var parentId = element.parentElement.parentElement;
+
+		console.log("Parent Id : "+parentId);
+		
+		var id = parseInt($(parentId).children().html());
+		
+		console.log("id : "+id);
+		
+		var deleteindex = -1;
+		
+		for(let index = 0 ; index < savedRecords.length ; index ++)
+		{
+			if(savedRecords[index].id == id)
+			{
+				var deleteindex = index;
+			}
+		}
+		
+		console.log(deleteindex);
+		
+		savedRecords.splice(deleteindex,1);
+		
+		save();
+		
+		$(parentId).remove();
+		
+		//location.reload();
+		
+		//loadRecords();
+		
+		return false;
+	};
+	
+	function editRecord(event,element){
+		
+		parentId = element.parentElement.parentElement;
+
+		editId = parseInt($(parentId).children().html());
+		
+		console.log("id : "+editId);
+
+		for(let index = 0 ; index < savedRecords.length ; index ++)
+		{
+			if(savedRecords[index].id == editId)
+			{
+				editindex = index;
+			}
+		}
+		
+		console.log("Index is : "+editindex);
+		
+		$("#name").val(savedRecords[editindex].name);
+		$("#date").val(savedRecords[editindex].DOB);
+		
+		var gender = savedRecords[editindex].Gender;
+		
+		if(gender == "Male")
+		{
+			$("#male").prop("checked", true);
+		}
+		else if(gender == "Female")
+		{
+			$("#female").prop("checked", true);
+		}
+		
+		var designation = savedRecords[editindex].Designation;
+		
+		$("#designation").val(designation);
+		
+		var skill = savedRecords[editindex].skillSets;
+		
+		if(skill.indexOf("Java") != -1){
+				$("#java").prop( "checked", true );
+		}
+		if(skill.indexOf("Dot Net") != -1){
+				$("#dotnet").prop( "checked", true );
+		}
+		
+		$('#submit').after($('<input type="button" id="updateRecord" value="update">'));
+		$('#submit').remove();
+		
+		$("#updateRecord").on("click",updateRecord);
+		
+		
+		return false;
+	}
+	
+	
+	function updateRecord()
+	{
+		//console.log("Index Receieced is : "+editindex + "Id Receieced is : "+editId);
+	
+		var name = $("#name").val();
+		//console.log("updated name is :"+name);
+        var date = $("#date").val();
+		//console.log("updated date is :"+date);
+        
+		var gender = $("input[name='gender']:checked").val();
+        //console.log("updated gender is :"+gender);
+		
+		var designation = $("#designation option:selected").val();
+		 //console.log("updated designation is :"+designation);
+			
+		var skillSets = [];
+		$('input[name="skill"]:checked').each(function() {
+			skillSets.push($(this).val());
+		});
+		
+		//console.log("Updated skill sets are : " + skillSets);
+		
+		var updatedRecord = {"id" : editId ,"name" : name , "DOB" : date , "Gender" : gender , "Designation" : designation , "skillSets" : skillSets };
+		//console.log(updatedRecord);
+		
+		savedRecords.splice(editindex, 1);
+		savedRecords.splice(editindex, 0,updatedRecord);
+		
+		//console.log("Parent id :"+$(parentId).parent().children());
+		//var index = $.jStorage.index();
+		//console.log(index);
+		
+		//console.log(savedRecords);
+		localStorage.clear();
+		
+		save();
+		//location.reload();
+		var tableDetails = document.getElementById("showDetails");
+		tableDetails.getElementsByTagName("tbody")[0].innerHTML = tableDetails.rows[0].innerHTML;
+		//$(parentId).parent().children('<tr>').remove();
+		loadRecords();
+		
+		$('#updateRecord').after($('<input type="submit" id="submit" value="insert">'));
+		$('#updateRecord').remove();
+		
+		$("#name").val("");
+		
+        $("#date").val("");
+		//console.log("updated date is :"+date);
+        
+		$("#male").prop("checked", false);
+		$("#female").prop("checked", false);
+        //console.log("updated gender is :"+gender);
+		$("#designation").val($("#designation option:first").val());
+		//var designation = $("#designation option:selected").val();
+		 //console.log("updated designation is :"+designation);
+		$('#java').prop('checked', false);
+		$('#dotnet').prop('checked', false);
+		//var skillSets = [];
+		
+		$('#submit').on('click',addRecord);
+	}
+	
+	function showRecord(record){
+		
+		var recordTemplate = $(`<tr><td>${record.id}</td>
+								<td>${record.name}</td>
+								<td>${record.DOB}</td>
+								<td>${record.Gender}</td>
+								<td>${record.Designation}</td>
+								<td>${record.skillSets}</td>
+								<td><button id="edit" value="Edit" onclick="return editRecord(event,this)">Edit</button></td>
+								<td><button id="delete" value="Delete" onclick="return deleteRecord(event,this)">Delete</button></td>
+		
+		</tr>`);
+		
+		$("#showDetails").append(recordTemplate);
+		
+	};
+    
+	
+	
+	$(document).ready(initialize);
+
+	
+	</script>
